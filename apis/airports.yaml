@@ -1,0 +1,167 @@
+openapi: 3.1.0
+info:
+  version: '1.0'
+  title: Airports API
+  summary: Traefik Airlines - Airport API
+  description: |
+    ![Logo](https://raw.githubusercontent.com/traefik-workshops/hub-tutorials/master/assets/traefik-airelines-logo.png)
+
+    ## Overview
+
+    This API can be used to get vital information on major international airports.
+
+    - Name of the airport
+    - [IATA airport code](https://en.wikipedia.org/wiki/IATA_airport_code "Link to info about IATA codes")
+    - City or the airport
+
+    ## Usage
+
+    Retrieve a list of all airports by sending a `GET` request to `/airports`.
+
+    ```shell
+    curl --request GET \
+      --url https://api.traefik-airlines/v1/airports/airports \
+      --header 'Accept: application/json'
+    ```
+
+    If you want to request information on a certain airport use the airport `ID`.
+
+    ```shell
+    curl --request GET \
+      --url https://api.traefik-airlines/v1/airports/airports/id \
+      --header 'Accept: application/json'
+    ```
+
+    ### Response codes
+
+    If the status returned is`200` range, it indicates that the request was fulfilled successfully and that no error was encountered.
+
+    Return codes in the `400` range indicate that there was an issue with the request that was sent.
+
+    ### Versioning
+
+    This API uses semantic versioning to ensure that your client doesn't break.  
+    The version is declared in the URL so that you can lock to a specific one by prefix the URL.
+
+    When the version declared in the URL is not supported, you will receive a 400 response.
+     
+     
+  termsOfService: 'https://dev.traefik-airlines.io/tos'
+  contact:
+    email: api@traefik-airlines.io
+    name: Traefik Airlines API Team
+    url: 'https://dev.traefik-airlines.io/support'
+  license:
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+    name: Apache 2
+servers:
+  - url: 'http://localhost:3000'
+    description: Development server
+  - url: 'https://api.traefik-airlines/v1/airports'
+    description: Production server
+paths:
+  /airports:
+    get:
+      tags:
+        - Airports
+      summary: List airports
+      description: |-
+        Returns a list of airports.
+
+        This endpoint lists all airports and displays the following information:
+
+        - Name of the airport
+        - City
+        - Country
+      operationId: get-airports
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                Example airport:
+                  value:
+                    description: Airport
+                    name: John F. Kennedy International Airport
+                    code: JFK
+                    city: New York City
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      servers:
+        - url: 'http://localhost:3000'
+          description: Development server
+        - url: 'https://api.traefik-airlines/v1/airports'
+          description: Production server
+  '/airports/{id}':
+    get:
+      tags:
+        - Airports
+      summary: Retrieve airport by ID
+      description: Returns the airport for the ID.
+      operationId: get-airports-id
+      parameters:
+        - name: id
+          in: path
+          description: ID of the airport
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                Example airport:
+                  value:
+                    description: Airport
+                    name: John F. Kennedy International Airport
+                    code: JFK
+                    city: New York City
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      servers:
+        - url: 'http://localhost:3000'
+          description: Development server
+        - url: 'https://api.traefik-airlines/v1/airports'
+          description: Production server
+tags:
+  - name: Airports
+    description: Overview of all airports
+components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            title: Error
+            description: A standard error object.
+            properties:
+              status:
+                type: string
+                description: A code.
+              error:
+                type: string
+            required:
+              - status
+              - error
+            x-tags:
+              - Common
+    Unauthorized:
+      description: Action not allowed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            required:
+              - message
