@@ -24,7 +24,7 @@ info:
       --header 'Accept: application/json'
     ```
 
-    If you want to request information on a ceratin airport use the airport `ID`.
+    If you want to request information on a certain airport use the airport `ID`.
 
     ```shell
     curl --request GET \
@@ -43,7 +43,7 @@ info:
     This API uses semantic versioning to ensure that your client doesn't break.  
     The version is declared in the URL so that you can lock to a specific one by prefix the URL.
 
-     When the version declared in the URL is not supported, you will receive a 400 response.
+    When the version declared in the URL is not supported, you will receive a 400 response.
      
      
   termsOfService: 'https://dev.traefik-airlines.io/tos'
@@ -68,7 +68,7 @@ paths:
       description: |-
         Returns a list of airports.
 
-        This endpoint lists all apirports and displays the following information:
+        This endpoint lists all airports and displays the following information:
 
         - Name of the airport
         - City
