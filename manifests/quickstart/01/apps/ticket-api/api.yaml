@@ -14,7 +14,5 @@ spec:
     name: ticket-app
     openApiSpec:
       path: /openapi.yaml
-      port:
-        number: 3000
     port:
       number: 3000

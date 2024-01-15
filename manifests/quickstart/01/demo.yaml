@@ -1,4 +1,10 @@
 ---
+# Create namespace for apps
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+---
 # Flight API Example
 # Flight API
 apiVersion: hub.traefik.io/v1alpha1
@@ -13,8 +19,6 @@ spec:
   service:
     openApiSpec:
       path: /openapi.yaml
-      port:
-        number: 3000
     name: flight-app
     port:
       number: 3000
@@ -263,8 +267,6 @@ spec:
     name: ticket-app
     openApiSpec:
       path: /openapi.yaml
-      port:
-        number: 3000
     port:
       number: 3000
 ---
