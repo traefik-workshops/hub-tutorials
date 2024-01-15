@@ -1,0 +1,572 @@
+---
+# Flight API Example
+# Flight API
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: flight-api
+  namespace: apps
+  labels:
+    area: travel
+spec:
+  pathPrefix: "/flights"
+  service:
+    openApiSpec:
+      path: /openapi.yaml
+      port:
+        number: 3000
+    name: flight-app
+    port:
+      number: 3000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-data
+  namespace: apps
+data:
+  api.json: |
+    {
+      "flights": [
+        { "id": 1, "code": "TL123", "src": "JFK", "dest": "CDG" },
+        { "id": 2, "code": "TL234", "src": "CDG", "dest": "JFK" },
+        { "id": 3, "code": "TL345", "src": "CDG", "dest": "LYS" }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flight-app
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flight-app
+  template:
+    metadata:
+      labels:
+        app: flight-app
+    spec:
+      containers:
+        - name: api
+          image: immanuelfodor/json-server:latest
+          args: ["--watch", "/api/api.json", "--static", "/public"]
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: api-data
+            mountPath: /api
+          - name: openapi
+            mountPath: /public
+      volumes:
+        - name: api-data
+          configMap:
+            name: flight-data
+        - name: openapi
+          configMap:
+            name: flight-apispec
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flight-app
+  namespace: apps
+  labels:
+    app: flight-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      name: api
+  selector:
+    app: flight-app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-apispec
+  namespace: apps
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: Flights
+      description: Traefik Airlines Flights API
+      contact:
+        name: Traefik Airlines Support
+        url: 'https://traefik.io/'
+      license:
+        name: Apache 2.0
+        url: 'https://spdx.org/licenses/Apache-2.0.html'
+    servers:
+      - url: https://api.traefik.localhost
+    paths:
+      /flights:
+        get:
+          summary: Retrieve flights
+          operationId: gettFlights
+          tags:
+            - flights
+          parameters:
+            - name: limit
+              in: query
+              description: How many items to return at one time (max 100)
+              required: false
+              schema:
+                type: integer
+                maximum: 100
+                format: int32
+          responses:
+            '200':
+              description: A paged array of flights
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                  schema:
+                    type: string
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Flights"
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        post:
+          summary: Create a flight
+          operationId: createFlight
+          tags:
+            - flights
+          responses:
+            '201':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+      /flights/{flightId}:
+        get:
+          summary: Info for a specific flight
+          operationId: showFlightById
+          tags:
+            - flights
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              description: The id of the flight
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Expected response to a valid request
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Flight"
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        put:
+          summary: Update a flight
+          operationId: updateFlight
+          tags:
+            - flights
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              description: The id of the flight
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        delete:
+          summary: Delete a flight
+          operationId: deleteFlight
+          tags:
+            - flights
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              description: The id of the flight
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+    components:
+      schemas:
+        Flight:
+          type: object
+          required:
+            - id
+            - name
+          properties:
+            id:
+              type: integer
+              format: int64
+            code:
+              type: string
+            source:
+              type: string
+            destination:
+              type: string
+        Flights:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/Flight"
+        Error:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+---
+# Ticket API Example
+# Ticket API
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: ticket-api
+  namespace: apps
+  labels:
+    area: travel
+spec:
+  pathPrefix: "/tickets"
+  service:
+    name: ticket-app
+    openApiSpec:
+      path: /openapi.yaml
+      port:
+        number: 3000
+    port:
+      number: 3000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ticket-openapi
+  namespace: apps
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 1.0.0
+      title: Tickets
+      description: Traefik Airlines Tickets API
+      contact:
+        name: Traefik Airlines Support
+        url: 'https://traefik.io/'
+      license:
+        name: Apache 2.0
+        url: 'https://spdx.org/licenses/Apache-2.0.html'
+    servers:
+      - url: https://api.traefik.localhost
+    paths:
+      /tickets:
+        get:
+          summary: Retrieve tickets
+          operationId: getTickets
+          tags:
+            - tickets
+          parameters:
+            - name: limit
+              in: query
+              description: How many items to return at one time (max 100)
+              required: false
+              schema:
+                type: integer
+                maximum: 100
+                format: int32
+          responses:
+            '200':
+              description: A paged array of tickets
+              headers:
+                x-next:
+                  description: A link to the next page of responses
+                  schema:
+                    type: string
+              content:
+                application/json:    
+                  schema:
+                    $ref: "#/components/schemas/Tickets"
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        post:
+          summary: Create a ticket
+          operationId: createTicket
+          tags:
+            - tickets
+          responses:
+            '201':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+      /tickets/{ticketId}:
+        get:
+          summary: Info for a specific ticket
+          operationId: showTicketById
+          tags:
+            - tickets
+          parameters:
+            - name: ticketId
+              in: path
+              required: true
+              description: The id of the ticket
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Expected response to a valid request
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Ticket"
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        put:
+          summary: Update a ticket
+          operationId: updateTicket
+          tags:
+            - tickets
+          parameters:
+            - name: ticketId
+              in: path
+              required: true
+              description: The id of the ticket
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+        delete:
+          summary: Delete a ticket
+          operationId: deleteTicket
+          tags:
+            - tickets
+          parameters:
+            - name: ticketId
+              in: path
+              required: true
+              description: The id of the ticket
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Null response
+            default:
+              description: unexpected error
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/Error"
+    components:
+      schemas:
+        Ticket:
+          type: object
+          required:
+            - id
+            - flightCode
+          properties:
+            id:
+              type: integer
+              format: int64
+            flightCode:
+              type: string
+            fare:
+              type: integer
+              format: int64
+            class:
+              type: string
+            available:
+              type: integer
+              format: int64
+            total:
+              type: integer
+              format: int64
+        Tickets:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/Ticket"
+        Error:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ticket-data
+  namespace: apps
+data:
+  api.json: |
+    {
+      "tickets": [
+        { "id": 1, "flightCode": "TL123", "fare": 500, "class": "first", "available": 5, "total": 20 },
+        { "id": 2, "flightCode": "TL234", "fare": 200, "class": "economy", "available": 2, "total": 5 },
+        { "id": 3, "flightCode": "TL345", "fare": 300, "class": "business", "available": 3, "total": 10 }
+      ]
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-app
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ticket-app
+  template:
+    metadata:
+      labels:
+        app: ticket-app
+    spec:
+      containers:
+        - name: api
+          image: immanuelfodor/json-server:latest
+          args: ["--watch", "/api/api.json", "--static", "/public"]
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: api-data
+            mountPath: /api
+          - name: openapi
+            mountPath: /public
+      volumes:
+        - name: api-data
+          configMap:
+            name: ticket-data
+        - name: openapi
+          configMap:
+            name: ticket-openapi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticket-app
+  namespace: apps
+  labels:
+    app: ticket-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      name: api
+  selector:
+    app: ticket-app
+---
+# API Access for the support team
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIAccess
+metadata:
+  name: support-team-access
+spec:
+  groups:
+    - support
+  apis:
+    #- name: flight-api # Remove that and add docs why
+    #  namespace: apps # Remove that and add docs why
+    #- name: ticket-api # Remove that and add docs why
+    #  namespace: apps # Remove that and add docs why
+  apiCollections: # Just the collection is enough here!
+    - name: demo-travel-collection
+---
+# API Access for the internal-team
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIAccess
+metadata:
+  name: internal-team-access
+spec:
+  groups:
+    - internal
+  apis:
+    - name: flight-api
+      namespace: apps
+---
+# Gateway CRD
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIGateway
+metadata:
+  name: traefik-hub-demo-gateway
+  labels:
+    area: travel
+spec:
+  apiAccesses:
+    - support-team-access
+    - internal-team-access
+---
+# API Portal CRD
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIPortal
+metadata:
+  name: traefik-hub-demo-portal
+spec:
+  title: "Traefik Airlines"
+  description: "API Demo Portal"
+  apiGateway: traefik-hub-demo-gateway
+---
+# API Collection containing the Flight and the Ticket API
+apiVersion: hub.traefik.io/v1alpha1
+kind: APICollection
+metadata:
+  name: demo-travel-collection
+  labels:
+    area: travel
+spec:
+  pathPrefix: "/travel"
+  apis:
+    - name: flight-api
+      namespace: apps
+    - name: ticket-api
+      namespace: apps

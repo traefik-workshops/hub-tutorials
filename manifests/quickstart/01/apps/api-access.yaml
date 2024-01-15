@@ -8,10 +8,10 @@ spec:
   groups:
     - support
   apis:
-    - name: flight-api # Remove that and add docs why
-      namespace: apps # Remove that and add docs why
-    - name: ticket-api # Remove that and add docs why
-      namespace: apps # Remove that and add docs why
+    #- name: flight-api # Remove that and add docs why
+    #  namespace: apps # Remove that and add docs why
+    #- name: ticket-api # Remove that and add docs why
+    #  namespace: apps # Remove that and add docs why
   apiCollections: # Just the collection is enough here!
     - name: demo-travel-collection
 ---
