@@ -34,7 +34,6 @@ data:
         { "id": 3, "code": "TL345", "src": "CDG", "dest": "LYS" }
       ]
     }
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -67,7 +66,7 @@ spec:
             name: flight-data
         - name: openapi
           configMap:
-            name: flight-apispec
+            name: flight-api-spec
 
 ---
 apiVersion: v1
@@ -461,6 +460,39 @@ data:
           properties:
             message:
               type: string
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-app
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ticket-app
+  template:
+    metadata:
+      labels:
+        app: ticket-app
+    spec:
+      containers:
+        - name: api
+          image: immanuelfodor/json-server:latest
+          args: ["--watch", "/api/api.json", "--static", "/public"]
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: api-data
+            mountPath: /api
+          - name: openapi
+            mountPath: /public
+      volumes:
+        - name: api-data
+          configMap:
+            name: ticket-data
+        - name: openapi
+          configMap:
+            name: ticket-openapi-spec
 ---
 # API Access for the support team
 apiVersion: hub.traefik.io/v1alpha1
