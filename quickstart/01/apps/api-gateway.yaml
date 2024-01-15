@@ -1,0 +1,12 @@
+---
+# Gateway CRD
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIGateway
+metadata:
+  name: traefik-hub-demo-gateway
+  labels:
+    area: travel
+spec:
+  apiAccesses:
+    - support-team-access
+    - internal-team-access
