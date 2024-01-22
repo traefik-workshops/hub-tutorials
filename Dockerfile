@@ -9,3 +9,4 @@ RUN npm install -g json-server@${APP_VERSION} \
     && npm cache clean --force
 
 USER node
+ENTRYPOINT [ "json-server", "--host", "0.0.0.0" ]
