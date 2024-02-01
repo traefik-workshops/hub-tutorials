@@ -55,8 +55,8 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/traefik-workshops/api-server:v0.1.0
-          args: ["-data", "/api/api.json", "-openapi", "/public/openapi.yaml", "-errorrate", "2"]
+          image: immanuelfodor/json-server:latest
+          args: ["--watch", "/api/api.json", "--static", "/public"]
           imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: api-data
@@ -476,8 +476,8 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/traefik-workshops/api-server:v0.1.0
-          args: ["-data", "/api/api.json", "-openapi", "/public/openapi.yaml", "-errorrate", "2"]
+          image: immanuelfodor/json-server:latest
+          args: ["--watch", "/api/api.json", "--static", "/public"]
           imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: api-data
