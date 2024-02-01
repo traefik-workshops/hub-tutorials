@@ -55,8 +55,8 @@ spec:
     spec:
       containers:
         - name: api
-          image: immanuelfodor/json-server:latest
-          args: ["--watch", "/api/api.json", "--static", "/public"]
+          image: ghcr.io/traefik-workshops/api-server:v0.1.0
+          args: ["-data", "/api/api.json", "-openapi", "/public/openapi.yaml", "-errorrate", "2"]
           imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: api-data
@@ -69,7 +69,7 @@ spec:
             name: flight-data
         - name: openapi
           configMap:
-            name: flight-apispec
+            name: flight-openapi
 ---
 apiVersion: v1
 kind: Service
@@ -89,7 +89,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: flight-apispec
+  name: flight-openapi
   namespace: apps
 data:
   openapi.yaml: |
@@ -110,7 +110,7 @@ data:
       /flights:
         get:
           summary: Retrieve flights
-          operationId: gettFlights
+          operationId: getFlights
           tags:
             - flights
           parameters:
@@ -315,7 +315,7 @@ data:
                   schema:
                     type: string
               content:
-                application/json:    
+                application/json:
                   schema:
                     $ref: "#/components/schemas/Tickets"
             default:
@@ -476,8 +476,8 @@ spec:
     spec:
       containers:
         - name: api
-          image: immanuelfodor/json-server:latest
-          args: ["--watch", "/api/api.json", "--static", "/public"]
+          image: ghcr.io/traefik-workshops/api-server:v0.1.0
+          args: ["-data", "/api/api.json", "-openapi", "/public/openapi.yaml", "-errorrate", "2"]
           imagePullPolicy: IfNotPresent
           volumeMounts:
           - name: api-data
@@ -557,6 +557,8 @@ spec:
   title: "Traefik Airlines"
   description: "API Demo Portal"
   apiGateway: traefik-hub-demo-gateway
+  ui:
+    logoUrl: https://doc.traefik.io/traefik-hub/assets/img/traefik-hub-logo.svg
 ---
 # API Collection containing the Flight and the Ticket API
 apiVersion: hub.traefik.io/v1alpha1
