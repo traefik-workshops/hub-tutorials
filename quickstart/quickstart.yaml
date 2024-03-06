@@ -558,7 +558,7 @@ spec:
   description: "API Demo Portal"
   apiGateway: traefik-hub-demo-gateway
   ui:
-    logoUrl: https://doc.traefik.io/traefik-hub/assets/img/traefik-hub-logo.svg
+    logoUrl: https://doc.traefik.io/traefik-hub/img/traefik-hub-logo.svg
 ---
 # API Collection containing the Flight and the Ticket API
 apiVersion: hub.traefik.io/v1alpha1
