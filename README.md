@@ -1,5 +1,7 @@
 <br/>
 
+> Since the end of May 2024, Traefik Hub tutorials has moved to [traefik/hub](https://github.com/traefik/hub) repository
+
 <div align="center" style="margin: 30px;">
 <a href="https://hub.traefik.io/">
   <img src="https://doc.traefik.io/traefik-hub/img/hub-logo-light.svg" style="width:250px;" align="center" />
